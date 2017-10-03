@@ -28,7 +28,7 @@ namespace wiz {
 		}
 		virtual ~Pool() 
 		{
-			delete buffer;
+			free(buffer);
 		}
 	public:
 		T* Allocate() {
