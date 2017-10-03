@@ -6,9 +6,9 @@
 #include <memory>
 using namespace std;
 
-#include <wiz/global.h>
-#include <wiz/wizardError.h>
-#include <wiz/NEWARRAYS.H>
+#include <wiz/global.h> // my own header file
+#include <wiz/wizardError.h> // my own header file
+#include <wiz/NEWARRAYS.H> // my own header file
 
 namespace wiz {
 	template<class T>
