@@ -1,8 +1,10 @@
 
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <ctime>
 #include <iostream>
 #include <string>
+#include <vector>
 #include <memory>
 using namespace std;
 
@@ -31,16 +33,27 @@ namespace wiz {
 			free(buffer);
 		}
 	public:
-		T* Allocate() {
+		T* Allocate(int n = 1) {
 			num++;
-			last += sizeof(T);
-			return (T*)(buffer + last - sizeof(T));
+			last += sizeof(T) * n;
+			return (T*)(buffer + last - (sizeof(T) * n));
 		}
 		void DeAllocate(T* ptr) {
 			num--;
 			if (0 == num) {
 				last = 0;
 			}
+		}
+		void Clear() {
+			num = 0;
+			last = 0;
+		}
+		T* ReAllocate(T* source, T* destination, int n) {
+			memcpy(destination, source, n);
+			return destination;
+		}
+		T* Buffer() {
+			return buffer;
 		}
 	};
 }
@@ -75,7 +88,7 @@ namespace wiz {
 			Element* next;
 			T data;
 		public:
-			explicit Element(const T d = T())
+			explicit Element(const T&d = T())
 			{
 				data = d;
 				next = nullptr;
@@ -94,6 +107,8 @@ namespace wiz {
 		}
 		void clear()
 		{
+			pool->Clear();
+			Rear = Head;
 			//while (!isEmpty()) {
 			//	deleteq();
 			//}
@@ -161,7 +176,7 @@ namespace wiz {
 
 			clear();
 
-			// head, rear reser..!!
+			// head, rear reset..!!
 			copy(q);
 
 			return *this;
@@ -678,19 +693,43 @@ namespace wiz {
 }
 
 
+class WizString // stringview?
+{
+private:
+	char* str;
+	wiz::Pool<char>* pool;
+public:
+	WizString() {
+		str = nullptr;
+		pool = nullptr;
+	}
+	WizString(const char* cstr, wiz::Pool<char>* pool)
+		: pool(pool)
+	{
+		str = pool->Allocate(strlen(cstr) + 1);
+		strcpy(str, cstr);
+	}
+	virtual ~WizString()
+	{
+		if (pool) {
+			pool->DeAllocate(str);
+		}
+	}
+};
 
 
 int main(void)
 {
-	const int MAX = 10000000;
+	const int MAX = 15000000;
 	int a, b;
 
 	a = clock();
 	{
-		wiz::Pool<wiz::Queue<int>::Element> pool(sizeof(wiz::Queue<int>::Element) * MAX);
-		wiz::Queue<int> x(&pool);
+		wiz::Pool<char> chPool(4 * MAX);
+		wiz::Pool<wiz::Queue<WizString>::Element> pool(sizeof(wiz::Queue<WizString>::Element) * MAX);
+		wiz::Queue<WizString> x(&pool);
 		for (int i = 0; i < MAX; ++i) {
-			x.push(i);
+			x.push(WizString(to_string(i).c_str(), &chPool));
 		}
 	}
 	b = clock();
@@ -698,9 +737,9 @@ int main(void)
 
 	a = clock();
 	{
-		wiz::ArrayQueue<int> x;
+		wiz::ArrayQueue<string> x;
 		for (int i = 0; i < MAX; ++i) {
-			x.push(i);
+			x.push(to_string(i));
 		}
 	}
 	b = clock();
