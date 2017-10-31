@@ -63,9 +63,11 @@ namespace wiz {
 						for (int k = 0; k < temp->num; ++k) {
 							pool[count + k] = *(iter_pool + k);
 						}
-
+						
+						temp->no = count;
 						count += temp->num;
 						iter_pool += temp->num;
+						
 						temp = temp->left;
 					}
 
@@ -78,6 +80,7 @@ namespace wiz {
 						}
 						buffer = (char*)malloc(sizeof(char) * multiple * max_size);
 						Ptr* temp = dump.left;
+						
 						for (int k = 0; k < max_size; ++k) {
 							buffer[k] = pool[k];
 						}
@@ -123,18 +126,93 @@ namespace wiz {
 	}
 }
 
+#include <ctime>
 
 int main(void)
 {
-	wiz::String::Pool pool;
-	wiz::String::Ptr p[4096];
+	int a, b;
+	const int MAX = 100000000;
 
-	for (int i = 0; i < 4096; ++i) {
-		pool.Alloc(&p[i], 100);
-		strcpy(p[i].ptr, "abc ");
+
+	a = clock();
+	{
+		wiz::String::Pool pool;
+		for (int t = 0; t < MAX; ++t) {
+			do {
+				wiz::String::Ptr str;
+
+				pool.Alloc(&str, 33);
+				strcpy(str.ptr, "abcdefghabcdefghabcdefghabcdefgh");
+
+				wiz::String::Ptr left, right;
+
+				str.ptr[str.num - 2] = '\0';
+				left.num = 1;
+				right.num = 2;
+				str.num -= 3;
+
+				left.ptr = str.ptr - 1;
+				right.ptr = str.ptr + str.num + 1;
+				str.ptr = str.ptr + 1;
+
+				str.no = 1;
+				left.no = 0;
+				right.no = 2;
+
+				str.left->right = &left;
+				str.right->left = &right;
+
+				left.left = str.left;
+				left.right = &str;
+
+				right.left = &str;
+				right.right = str.right;
+
+				str.left = &left;
+				str.right = &right;
+
+
+				pool.DeAlloc(&left);
+				pool.DeAlloc(&right);
+
+				pool.DeAlloc(&str);
+				//std::cout << str.ptr << std::endl;
+			} while (false);
+		}
 	}
-	for (int i = 0; i < 4; ++i) {
-		std::cout << p[i].ptr << std::endl;
+	b = clock();
+	std::cout << b - a << std::endl;
+
+	a = clock();
+	for (int t = 0; t < MAX; ++t) {
+		do {
+			std::string test = "abcdefghabcdefghabcdefghabcdefgh";
+			std::string sol = test.substr(1, 30); // number 6
+		} while (false);
+	}
+	b = clock();
+	std::cout << b - a << std::endl;
+
+
+	while (false) {
+		wiz::String::Pool pool;
+		wiz::String::Ptr p[4096];
+
+		for (int i = 0; i < 4096; ++i) {
+			pool.Alloc(&p[i], 3);
+
+			strcpy(p[i].ptr, "ab");
+
+			if (rand() % 2) {
+				pool.DeAlloc(&p[i]);
+				p[i].ptr = nullptr;
+			}
+		}
+		for (int i = 0; i < 4; ++i) {
+			if (p[i].ptr != nullptr) {
+				std::cout << p[i].ptr << std::endl;
+			}
+		}
 	}
 
 	return 0;
