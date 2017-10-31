@@ -1,8 +1,11 @@
 
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 #include <cstdlib>
 
+
+#define WIZ_STRING_POOL_SIZE 1024
 
 namespace wiz {
 	namespace String {
@@ -11,7 +14,10 @@ namespace wiz {
 		public:
 			Ptr* left;
 			Ptr* right;
-			int no;
+			int no; // const?
+			int num; // const?
+			char* start;
+			char* ptr;
 		};
 
 		class Pool // for String of char
@@ -27,8 +33,8 @@ namespace wiz {
 		public:
 			explicit Pool()
 			{
-				pool = (char*)malloc(sizeof(char) * 1024);
-				max_size = 1024;
+				pool = (char*)malloc(sizeof(char) * WIZ_STRING_POOL_SIZE);
+				max_size = WIZ_STRING_POOL_SIZE;
 				n = 0;
 				dump.left = &dump;
 				dump.right = &dump;
@@ -39,36 +45,51 @@ namespace wiz {
 				free(pool);
 			}
 		public:
-			void Alloc(Ptr* p) {
-				if (n >= max_size) {
+			void Alloc(Ptr* p, int num = 1) {
+				if (n + num > max_size) {
 					// expand, change pool !
 					Ptr* temp = dump.left;
 					char* iter_pool = pool;
 					int count = 0;
 
 					while (temp != &dump) {
-						while (iter_pool != pool + temp->no && iter_pool < pool + max_size) {
+						while (iter_pool != pool + temp->no && iter_pool + temp->num <= pool + max_size) {
 							iter_pool++;
 						}
-						if (iter_pool >= pool + max_size) {
+						if (iter_pool + temp->num > pool + max_size) {
 							break;
 						}
 
-						pool[count] = *iter_pool;
+						for (int k = 0; k < temp->num; ++k) {
+							pool[count + k] = *(iter_pool + k);
+						}
 
-						count++;
-						iter_pool++;
+						count += temp->num;
+						iter_pool += temp->num;
 						temp = temp->left;
 					}
 
 					char* buffer;
 					
-					if (count >= n) {
-						buffer = (char*)malloc(sizeof(char) * 2 * max_size);
+					if (count + num > max_size) {
+						int multiple = 2;
+						while (multiple * max_size < count + num) {
+							multiple++;
+						}
+						buffer = (char*)malloc(sizeof(char) * multiple * max_size);
+						Ptr* temp = dump.left;
+						for (int k = 0; k < max_size; ++k) {
+							buffer[k] = pool[k];
+						}
+						while (temp != &dump) {
+							temp->start = buffer;
+							temp->ptr = buffer + temp->no;
 
+							temp = temp->left;
+						}
 						free(pool);
 						pool = buffer;
-						max_size = 2 * max_size;
+						max_size = multiple * max_size;
 					}
 
 					n = count;
@@ -82,9 +103,11 @@ namespace wiz {
 				dump.right = p;
 
 				p->no = n;
-
+				p->start = pool;
+				p->ptr = pool + n;
+				p->num = num;
 				
-				n++;
+				n += num;
 			}
 			void DeAlloc(Ptr* p) {
 				p->right->left = p->left;
@@ -94,7 +117,7 @@ namespace wiz {
 				p->right = p;
 				p->no = -2;
 
-				n--;
+				n -= p->num;
 			}
 		};
 	}
@@ -107,12 +130,11 @@ int main(void)
 	wiz::String::Ptr p[4096];
 
 	for (int i = 0; i < 4096; ++i) {
-		pool.Alloc(&p[i]);
-
-		int x = rand() % 5;
-		if (x) {
-			pool.DeAlloc(&p[i]);
-		}
+		pool.Alloc(&p[i], 100);
+		strcpy(p[i].ptr, "abc ");
+	}
+	for (int i = 0; i < 4; ++i) {
+		std::cout << p[i].ptr << std::endl;
 	}
 
 	return 0;
