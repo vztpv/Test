@@ -1,4 +1,4 @@
-
+﻿
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -17,6 +17,8 @@
 int log_result = 0;
 #include "njp.h"
 
+//#include <conio.h> // _getch
+
 namespace wiz {
 	template <typename T> /// T <- char, int, long, long long...
 	std::string toStr(const T x, const int base) /// chk!!
@@ -29,7 +31,7 @@ namespace wiz {
 		std::string tempString;
 		int k;
 		bool isMinus = (i < 0);
-		temp[INT_SIZE + 1] = '\0'; ///문자�시..
+		temp[INT_SIZE + 1] = '\0'; 
 
 		for (k = INT_SIZE; k >= 1; k--) {
 			T val = pos_1<T>(i, base); /// 0 ~ base-1
@@ -39,7 +41,7 @@ namespace wiz {
 
 			i /= base;
 
-			if (0 == i) { // �자.
+			if (0 == i) { 
 				k--;
 				break;
 			}
@@ -71,7 +73,7 @@ namespace wiz {
 		std::string tempString;
 		int k;
 		bool isMinus = (i < 0);
-		temp[INT_SIZE + 1] = '\0'; ///문자�시..
+		temp[INT_SIZE + 1] = '\0'; 
 
 		for (k = INT_SIZE; k >= 1; k--) {
 			T val = pos_1<T>(i, base); /// 0 ~ base-1
@@ -81,7 +83,7 @@ namespace wiz {
 
 			i /= base;
 
-			if (0 == i) { // �자.
+			if (0 == i) { 
 				k--;
 				break;
 			}
@@ -141,7 +143,7 @@ namespace wiz {
 			for (int i = 1; i < thr_num; ++i) {
 				start[i] = length / thr_num * i;
 				for (int x = start[i]; x <= length; ++x) {
-					if (isWhitespace(buffer[x])) {
+					if ('\r' == (buffer[x]) || '\n' == buffer[x] || '\0' == buffer[x]) {
 						start[i] = x;
 						//	std::cout << "start " << start[i] << std::endl;
 						break;
@@ -151,7 +153,7 @@ namespace wiz {
 			for (int i = 0; i < thr_num - 1; ++i) {
 				last[i] = start[i + 1] - 1;
 				for (int x = last[i]; x <= length; ++x) {
-					if (isWhitespace(buffer[x])) {
+					if ('\r' == (buffer[x]) || '\n' == buffer[x] || '\0' == buffer[x]) {
 						last[i] = x;
 						//	std::cout << "start " << start[i] << std::endl;
 						break;
@@ -204,10 +206,7 @@ namespace wiz {
 			aq->reserve(new_size);
 
 			for (int i = 0; i < thr_num; ++i) {
-				for (int j = 0; j < partial_list[i].size(); ++j) {
-					aq->push_back(std::move(partial_list[i][j]));
-				}
-				//aq->insert(aq->end(), make_move_iterator(partial_list[i].begin()), make_move_iterator(partial_list[i].end()));
+				aq->insert(aq->end(), std::make_move_iterator(partial_list[i].begin()), std::make_move_iterator(partial_list[i].end()));
 			}
 		}
 		else {
@@ -245,12 +244,10 @@ namespace wiz {
 
 		int state = start_state;
 		int braceNum = 0;
-		//long long state_reserve = 0;
-
 		std::vector< UserType* > nestedUT(1);
 		std::string var1, var2, val;
 
-		bool varOn = false;
+
 		nestedUT[0] = &global;
 
 		//	for (int i = 0; i < strVec.size(); ++i) {
@@ -259,8 +256,13 @@ namespace wiz {
 		int i = start_idx;
 
 		while (false == strVec.empty() && i <= last_idx) {
-			//std::cout << state << " /" << strVec[i].str << "/" << std::endl;
-			//	cout << state << " " << Utility::Top(strVec, nestedUT[braceNum], reserver, option) << endl;
+			
+		//	for (const char* x = strVec[i].str; x < strVec[i].str + strVec[i].len; x = x + 1)
+		//	{
+		//		std::cout << (*x);
+		//	}
+		//	std::cout << std::endl;
+		//	_getch();
 
 			switch (state)
 			{
@@ -268,7 +270,7 @@ namespace wiz {
 			{
 				const std::string top(strVec[i].str, strVec[i].len);
 				if (top.size() == 1 && -1 != Equal(option.Left, top[0])) {
-					state = 2;
+					state = 1;
 				}
 				else {
 					std::pair<bool, std::string> bsPair;
@@ -283,7 +285,7 @@ namespace wiz {
 						if (bsPair.second.size() == 1 && -1 != Equal(option.Assignment, bsPair.second[0])) {
 							var2 = std::string(strVec[i].str, strVec[i].len); // Utility::Pop(strVec, &var2, nestedUT[braceNum], option);
 																			  //Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
-							state = 2;
+							state = 1;
 							i += 2;
 						}
 						else {
@@ -313,20 +315,6 @@ namespace wiz {
 			case 1:
 			{
 				const std::string top(strVec[i].str, strVec[i].len);
-				if (top.size() == 1 && -1 != Equal(option.Right, top[0])) {
-					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
-					i += 1;
-					state = 0;
-				}
-				else {
-					// syntax error.
-					throw "syntax error 1 ";
-				}
-			}
-			break;
-			case 2:
-			{
-				const std::string top(strVec[i].str, strVec[i].len);
 				if (top.size() == 1 && -1 != Equal(option.Left, top[0])) {
 					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
 					i += 1;
@@ -345,7 +333,7 @@ namespace wiz {
 					/// initial new nestedUT.
 					nestedUT[braceNum] = pTemp;
 					///
-					state = 3;
+					state = 2;
 				}
 				else {
 					if (i <= last_idx) {
@@ -362,7 +350,7 @@ namespace wiz {
 				}
 			}
 			break;
-			case 3:
+			case 2:
 			{
 				const std::string top(strVec[i].str, strVec[i].len);
 				if (top.size() == 1 && -1 != Equal(option.Right, top[0])) {
@@ -374,18 +362,22 @@ namespace wiz {
 						ut.AddUserTypeItem(UserType("#"));
 						UserType* pTemp = nullptr;
 						ut.GetLastUserTypeItemRef("#", pTemp);
+						int utCount = 0;
+						int itCount = 0;
 
-						for (auto x : nestedUT[braceNum]->child) {
-							if (x->IsUserType()) {
-								((UserType*)ut.back())->AddUserTypeItem(std::move(*((UserType*)x)));
+						for (auto i = 0; i < nestedUT[braceNum]->GetIListSize(); ++i) {
+							if (nestedUT[braceNum]->IsUserTypeList(utCount)) {
+								ut.AddUserTypeItem(std::move(*(nestedUT[braceNum]->GetUserTypeList(utCount))));
+								utCount++;
 							}
 							else {
-								((UserType*)ut.back())->AddItemList(std::move(*((ItemType<std::string>*)x)));
+								ut.AddItemList(std::move(nestedUT[braceNum]->GetItemList(itCount)));
+								itCount++;
 							}
 						}
 
 						nestedUT[braceNum]->Remove();
-						nestedUT[braceNum]->AddUserTypeItem(std::move(*((UserType*)ut.back())));
+						nestedUT[braceNum]->AddUserTypeItem(std::move(*(ut.GetUserTypeList(0))));
 
 						braceNum++;
 					}
@@ -401,7 +393,7 @@ namespace wiz {
 					{
 						/// uisng struct
 						//state_reserve++;
-						state = 4;
+						state = 3;
 					}
 					//else
 					{
@@ -410,11 +402,11 @@ namespace wiz {
 				}
 			}
 			break;
-			case 4:
+			case 3:
 			{
-				const std::string top(strVec[i].str, strVec[i].len);
+				//const std::string top(strVec[i].str, strVec[i].len);
 
-				if (top.size() == 1 && -1 != Equal(option.Left, top[0])) {
+				if (strVec[i].len == 1 && -1 != Equal(option.Left, strVec[i].str[0])) {
 					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
 					i += 1;
 					UserType temp("");
@@ -435,13 +427,32 @@ namespace wiz {
 					//}
 
 
-					state = 5;
+					state = 4;
+
+					// test for reserve.
+					long long count_brace = 1;
+					long long count_it = 0;
+					long long count_ut = 0;
+
+					for (size_t x = i + 1; x < strVec.size(); ++x) {
+						if (count_brace == 0) {
+							break;
+						}
+						if (-1 != Equal(option.Left, strVec[x].str[0]) && strVec[x].len == 1) {
+							break;
+						}
+						else if (-1 != Equal(option.Right, strVec[x].str[0]) && strVec[x].len == 1) {
+							break;
+						}
+						count_it++;
+					}
+					nestedUT[braceNum]->ReserveItemList(count_it);
 				}
-				else if (top.size() == 1 && -1 != Equal(option.Right, top[0])) {
+				else if (strVec[i].len == 1 && -1 != Equal(option.Right, strVec[i].str[0])) {
 					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
 					i += 1;
 
-					state = 4;
+					state = 3;
 					//state = isState0(state_reserve) ? 0 : 4;
 					//state_reserve--;
 
@@ -451,18 +462,22 @@ namespace wiz {
 						ut.AddUserTypeItem(UserType("#"));
 						UserType* pTemp = nullptr;
 						ut.GetLastUserTypeItemRef("#", pTemp);
+						int utCount = 0;
+						int itCount = 0;
 
-						for (auto x : nestedUT[braceNum]->child) {
-							if (x->IsUserType()) {
-								((UserType*)ut.back())->AddUserTypeItem(std::move(*((UserType*)x)));
+						for (auto i = 0; i < nestedUT[braceNum]->GetIListSize(); ++i) {
+							if (nestedUT[braceNum]->IsUserTypeList(utCount)) {
+								ut.AddUserTypeItem(std::move(*(nestedUT[braceNum]->GetUserTypeList(utCount))));
+								utCount++;
 							}
 							else {
-								((UserType*)ut.back())->AddItemList(std::move(*((ItemType<std::string>*)x)));
+								ut.AddItemList(std::move(nestedUT[braceNum]->GetItemList(itCount)));
+								itCount++;
 							}
 						}
 
 						nestedUT[braceNum]->Remove();
-						nestedUT[braceNum]->AddUserTypeItem(std::move(*((UserType*)ut.back())));
+						nestedUT[braceNum]->AddUserTypeItem(std::move(*(ut.GetUserTypeList(0))));
 
 						braceNum++;
 					}
@@ -475,23 +490,23 @@ namespace wiz {
 					}
 				}
 				else {
-					std::pair<bool, std::string> bsPair;
+					std::pair<bool, Token2> bsPair;
 
 					if (i < last_idx)
 					{
-						bsPair = std::make_pair(true, std::string(strVec[i + 1].str, strVec[i + 1].len));
+						bsPair = std::make_pair(true, strVec[i+1]);
 					}
 					else {
-						bsPair = std::make_pair(false, "");
+						bsPair = std::make_pair(false, Token2());
 					}
 
 					if (bsPair.first) {
-						if (bsPair.second.size() == 1 && -1 != Equal(option.Assignment, bsPair.second[0])) {
+						if (bsPair.second.len == 1 && -1 != Equal(option.Assignment, bsPair.second.str[0])) {
 							// var2
 							//Utility::Pop(strVec, &var2, nestedUT[braceNum], option);
 							//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option); // pass EQ_STR
 							var2 = std::string(strVec[i].str, strVec[i].len);
-							state = 6;
+							state = 5;
 							i += 1;
 							i += 1;
 						}
@@ -504,7 +519,7 @@ namespace wiz {
 								nestedUT[braceNum]->AddItem("", move(var1));
 								var1 = "";
 
-								state = 4;
+								state = 3;
 								i += 1;
 							}
 						}
@@ -518,17 +533,17 @@ namespace wiz {
 							nestedUT[braceNum]->AddItem("", move(var1));
 							var1 = "";
 
-							state = 4;
+							state = 3;
 							i += 1;
 						}
 					}
 				}
 			}
 			break;
-			case 5:
+			case 4:
 			{
-				const std::string top(strVec[i].str, strVec[i].len);
-				if (top.size() == 1 && -1 != Equal(option.Right, top[0])) {
+				//const std::string top(strVec[i].str, strVec[i].len);
+				if (strVec[i].len == 1 && -1 != Equal(option.Right, strVec[i].str[0])) {
 					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
 
 					if (braceNum == 0) {
@@ -536,18 +551,22 @@ namespace wiz {
 						ut.AddUserTypeItem(UserType("#"));
 						UserType* pTemp = nullptr;
 						ut.GetLastUserTypeItemRef("#", pTemp);
+						int utCount = 0;
+						int itCount = 0;
 
-						for (auto x : nestedUT[braceNum]->child) {
-							if (x->IsUserType()) {
-								((UserType*)ut.back())->AddUserTypeItem(std::move(*((UserType*)x)));
+						for (auto i = 0; i < nestedUT[braceNum]->GetIListSize(); ++i) {
+							if (nestedUT[braceNum]->IsUserTypeList(utCount)) {
+								ut.AddUserTypeItem(std::move(*(nestedUT[braceNum]->GetUserTypeList(utCount))));
+								utCount++;
 							}
 							else {
-								((UserType*)ut.back())->AddItemList(std::move(*((ItemType<std::string>*)x)));
+								ut.AddItemList(std::move(nestedUT[braceNum]->GetItemList(itCount)));
+								itCount++;
 							}
 						}
 
 						nestedUT[braceNum]->Remove();
-						nestedUT[braceNum]->AddUserTypeItem(std::move(*((UserType*)ut.back())));
+						nestedUT[braceNum]->AddUserTypeItem(std::move(*(ut.GetUserTypeList(0))));
 
 						braceNum++;
 					}
@@ -559,7 +578,7 @@ namespace wiz {
 					braceNum--;
 					// }
 					//
-					state = 4;
+					state = 3;
 					i += 1;
 				}
 				else {
@@ -570,7 +589,7 @@ namespace wiz {
 					{
 						/// uisng struct
 						//state_reserve++;
-						state = 4;
+						state = 3;
 					}
 					//else
 					{
@@ -579,10 +598,10 @@ namespace wiz {
 				}
 			}
 			break;
-			case 6:
+			case 5:
 			{
-				std::string top(strVec[i].str, strVec[i].len);
-				if (top.size() == 1 && -1 != Equal(option.Left, top[0])) {
+				//std::string top(strVec[i].str, strVec[i].len);
+				if (strVec[i].len == 1 && -1 != Equal(option.Left, strVec[i].str[0])) {
 					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
 					i += 1;
 					///
@@ -603,7 +622,7 @@ namespace wiz {
 
 					}
 					///
-					state = 7;
+					state = 6;
 				}
 				else {
 					if (i <= last_idx) { //Utility::Pop(strVec, &val, nestedUT[braceNum], option)) {
@@ -613,7 +632,7 @@ namespace wiz {
 						nestedUT[braceNum]->AddItem(move(var2), move(val));
 						var2 = ""; val = "";
 
-						top = std::string(strVec[i].str, strVec[i].len);
+						const std::string top = std::string(strVec[i].str, strVec[i].len);
 
 						if (strVec.empty())
 						{
@@ -628,24 +647,27 @@ namespace wiz {
 								ut.AddUserTypeItem(UserType("#"));
 								UserType* pTemp = nullptr;
 								ut.GetLastUserTypeItemRef("#", pTemp);
+								int utCount = 0;
+								int itCount = 0;
 
-								for (auto x : nestedUT[braceNum]->child) {
-									if (x->IsUserType()) {
-										((UserType*)ut.back())->AddUserTypeItem(std::move(*((UserType*)x)));
+								for (auto i = 0; i < nestedUT[braceNum]->GetIListSize(); ++i) {
+									if (nestedUT[braceNum]->IsUserTypeList(utCount)) {
+										ut.AddUserTypeItem(std::move(*(nestedUT[braceNum]->GetUserTypeList(utCount))));
+										utCount++;
 									}
 									else {
-										((UserType*)ut.back())->AddItemList(std::move(*((ItemType<std::string>*)x)));
+										ut.AddItemList(std::move(nestedUT[braceNum]->GetItemList(itCount)));
+										itCount++;
 									}
 								}
 
 								nestedUT[braceNum]->Remove();
-								nestedUT[braceNum]->AddUserTypeItem(std::move(*((UserType*)ut.back())));
+								nestedUT[braceNum]->AddUserTypeItem(std::move(*(ut.GetUserTypeList(0))));
 
 								braceNum++;
 							}
-
 							{
-								state = 4;
+								state = 3;
 								//state = isState0(state_reserve) ? 0 : 4;
 								//state_reserve--;
 
@@ -657,20 +679,20 @@ namespace wiz {
 								}
 							}
 							{
-								//state = 4;
+								//state = 3;
 							}
 						}
 						else {
-							state = 4;
+							state = 3;
 						}
 					}
 				}
 			}
 			break;
-			case 7:
+			case 6:
 			{
-				const std::string top(strVec[i].str, strVec[i].len);
-				if (top.size() == 1 && -1 != Equal(option.Right, top[0])) {
+				//const std::string top(strVec[i].str, strVec[i].len);
+				if (strVec[i].len == 1 && -1 != Equal(option.Right, strVec[i].str[0])) {
 					//Utility::Pop(strVec, nullptr, nestedUT[braceNum], option);
 					//
 					i += 1;
@@ -680,28 +702,31 @@ namespace wiz {
 						ut.AddUserTypeItem(UserType("#"));
 						UserType* pTemp = nullptr;
 						ut.GetLastUserTypeItemRef("#", pTemp);
+						int utCount = 0;
+						int itCount = 0;
 
-						for (auto x : nestedUT[braceNum]->child) {
-							if (x->IsUserType()) {
-								((UserType*)ut.back())->AddUserTypeItem(std::move(*((UserType*)x)));
+						for (auto i = 0; i < nestedUT[braceNum]->GetIListSize(); ++i) {
+							if (nestedUT[braceNum]->IsUserTypeList(utCount)) {
+								ut.AddUserTypeItem(std::move(*(nestedUT[braceNum]->GetUserTypeList(utCount))));
+								utCount++;
 							}
 							else {
-								((UserType*)ut.back())->AddItemList(std::move(*((ItemType<std::string>*)x)));
+								ut.AddItemList(std::move(nestedUT[braceNum]->GetItemList(itCount)));
+								itCount++;
 							}
 						}
 
 						nestedUT[braceNum]->Remove();
-						nestedUT[braceNum]->AddUserTypeItem(std::move(*((UserType*)ut.back())));
+						nestedUT[braceNum]->AddUserTypeItem(std::move(*(ut.GetUserTypeList(0))));
 
 						braceNum++;
 					}
-
 					if (braceNum < nestedUT.size()) {
 						nestedUT[braceNum] = nullptr;
 					}
 					braceNum--;
 					//
-					state = 4;
+					state = 3;
 				}
 				else {
 					int idx = -1;
@@ -711,7 +736,7 @@ namespace wiz {
 						/// uisng struct
 						//state_reserve++;
 
-						state = 4;
+						state = 3;
 					}
 					//else
 					{
@@ -731,6 +756,7 @@ namespace wiz {
 		if (next) {
 			*next = nestedUT[braceNum];
 		}
+		
 		if (state != last_state) { // 0 : empty or 4 : else?
 			throw std::string("error final state is not last_state!  : ") + toStr(state);
 		}
@@ -750,15 +776,13 @@ namespace wiz {
 
 		return -1;
 	}
-
 	void Merge(UserType* next, UserType* ut, UserType** ut_next)
 	{
 		//check!!
-		while (ut->size() >= 1 && ut->GetUserTypeListSize() >= 1
-			&& (ut->child.front()->GetName() == "##" ||
-				ut->child.front()->GetName() == "#"))
+		while (ut->GetIListSize() >= 1 && ut->GetUserTypeListSize() >= 1
+			&& (ut->GetUserTypeList(0)->GetName() == "#"))
 		{
-			ut = (UserType*)ut->child.front();
+			ut = ut->GetUserTypeList(0);
 		}
 
 		//int chk = 0;
@@ -773,25 +797,23 @@ namespace wiz {
 				*ut_next = _next;
 			}
 
-
-			for (auto x = _ut->child.begin(); x != _ut->child.end(); ) {
-				if ((*x)->IsUserType()) {
-					if ((*x)->GetName() == "#" ||
-						(*x)->GetName() == "##") {
-						(*x)->SetName("");
-						++x;
+			for (int i = 0; i < _ut->GetIListSize(); ++i) {
+				if (_ut->IsUserTypeList(i)) {
+					if (_ut->GetUserTypeList(utCount)->GetName() == "#") {
+						_ut->GetUserTypeList(utCount)->SetName("");
 					}
 					else {
 						{
-							_next->LinkUserType(((UserType*)*x));
-
-							x = _ut->child.erase(x);
+							_next->LinkUserType(_ut->GetUserTypeList(utCount));
+							_ut->GetUserTypeList(utCount) = nullptr;
 						}
+						//chk++;
 					}
+					utCount++;
 				}
-				else {
-					_next->AddItemList(std::move(*((ItemType<std::string>*)*x)));
-					++x;
+				else if (_ut->IsItemList(i)) {
+					_next->AddItemList(std::move(_ut->GetItemList(itCount)));
+					itCount++;
 				}
 			}
 			_ut->Remove();
@@ -803,7 +825,9 @@ namespace wiz {
 				break;
 			}
 		}
+
 	}
+
 	
 	//// ToDo : # => option.~?
 	template <class Reserver>
@@ -895,20 +919,20 @@ namespace wiz {
 
 				if (first) {
 					int idx = pivots.empty() ? last_idx : pivots[0];
-					thr[0] = std::thread(__LoadData3, &strVec, 0, idx, &__global[0], &option, 0, 4, &next[0]);
+					thr[0] = std::thread(__LoadData3, &strVec, 0, idx, &__global[0], &option, 0, 3, &next[0]);
 				}
 				else {
 					int idx = pivots.empty() ? last_idx : pivots[0];
-					thr[0] = std::thread(__LoadData3, &strVec, 0, idx, &__global[0], &option, 4, 4, &next[0]);
+					thr[0] = std::thread(__LoadData3, &strVec, 0, idx, &__global[0], &option, 3, 3, &next[0]);
 				}
 
 				for (int i = 1; i < pivots.size(); ++i) {
-					thr[i] = std::thread(__LoadData3, &strVec, pivots[i - 1] + 1, pivots[i], &__global[i], &option, 4, 4, &next[i]);
+					thr[i] = std::thread(__LoadData3, &strVec, pivots[i - 1] + 1, pivots[i], &__global[i], &option, 3, 3, &next[i]);
 				}
 
 				if (pivots.size() >= 1) {
 					thr[pivots.size()] = std::thread(__LoadData3, &strVec, pivots.back() + 1, last_idx, &__global[pivots.size()],
-						&option, 4, 4, &next[pivots.size()]);
+						&option, 3, 3, &next[pivots.size()]);
 				}
 
 				// wait
@@ -971,7 +995,7 @@ namespace wiz {
 
 		delete[] buffer;
 
-		global = std::move(*((UserType*)(((UserType*)_global.child.front())->child.front())));
+		global = std::move(*(_global.GetUserTypeList(0)->GetUserTypeList(0)));
 
 		std::cout << "lexing " << log_result << "ms" << std::endl;
 		log_result = 0;
